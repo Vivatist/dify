@@ -46,6 +46,7 @@ x-shared-env: &shared-api-worker-env
   CELERY_AUTO_SCALE: ${CELERY_AUTO_SCALE:-false}
   CELERY_MAX_WORKERS: ${CELERY_MAX_WORKERS:-}
   CELERY_MIN_WORKERS: ${CELERY_MIN_WORKERS:-}
+  CELERY_QUEUES: ${CELERY_QUEUES:-dataset,pipeline,mail,ops_trace,app_deletion,plugin,workflow_storage,conversation,priority_pipeline}
   API_TOOL_DEFAULT_CONNECT_TIMEOUT: ${API_TOOL_DEFAULT_CONNECT_TIMEOUT:-10}
   API_TOOL_DEFAULT_READ_TIMEOUT: ${API_TOOL_DEFAULT_READ_TIMEOUT:-60}
   ENABLE_WEBSITE_JINAREADER: ${ENABLE_WEBSITE_JINAREADER:-true}
@@ -631,8 +632,6 @@ services:
       PLUGIN_REMOTE_INSTALL_PORT: ${EXPOSE_PLUGIN_DEBUGGING_PORT:-5003}
       PLUGIN_MAX_PACKAGE_SIZE: ${PLUGIN_MAX_PACKAGE_SIZE:-52428800}
       INNER_API_KEY_FOR_PLUGIN: ${PLUGIN_DIFY_INNER_API_KEY:-QaHbTe77CtuXmsfyhR7+vRjI/+XbV1AaFy691iy+kGDv2Jvy0/eAh8Y1}
-    ports:
-      - "5001:5001"
     depends_on:
       db:
         condition: service_healthy
