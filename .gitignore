@@ -185,6 +185,10 @@ docker/volumes/plugin_daemon/*
 docker/volumes/matrixone/*
 !docker/volumes/oceanbase/init.d
 
+# Backups directory
+docker/backups/*
+!docker/backups/.gitkeep
+
 docker/nginx/conf.d/default.conf
 docker/nginx/ssl/*
 !docker/nginx/ssl/.gitkeep
