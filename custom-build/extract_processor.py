@@ -1,12 +1,8 @@
-import os
 import re
 import tempfile
-import logging
 from pathlib import Path
 from typing import Union
 from urllib.parse import unquote
-
-logger = logging.getLogger(__name__)
 
 from configs import dify_config
 from core.helper import ssrf_proxy
@@ -23,14 +19,12 @@ from core.rag.extractor.notion_extractor import NotionExtractor
 from core.rag.extractor.pdf_extractor import PdfExtractor
 from core.rag.extractor.text_extractor import TextExtractor
 from core.rag.extractor.unstructured.unstructured_doc_extractor import UnstructuredWordExtractor
-from core.rag.extractor.unstructured.unstructured_docx_extractor import UnstructuredDocxExtractor
 from core.rag.extractor.unstructured.unstructured_eml_extractor import UnstructuredEmailExtractor
 from core.rag.extractor.unstructured.unstructured_epub_extractor import UnstructuredEpubExtractor
 from core.rag.extractor.unstructured.unstructured_markdown_extractor import UnstructuredMarkdownExtractor
 from core.rag.extractor.unstructured.unstructured_msg_extractor import UnstructuredMsgExtractor
 from core.rag.extractor.unstructured.unstructured_ppt_extractor import UnstructuredPPTExtractor
 from core.rag.extractor.unstructured.unstructured_pptx_extractor import UnstructuredPPTXExtractor
-from core.rag.extractor.unstructured.unstructured_pdf_extractor import UnstructuredPdfExtractor
 from core.rag.extractor.unstructured.unstructured_xml_extractor import UnstructuredXmlExtractor
 from core.rag.extractor.watercrawl.extractor import WaterCrawlWebExtractor
 from core.rag.extractor.word_extractor import WordExtractor
@@ -118,74 +112,35 @@ class ExtractProcessor:
                     if file_extension in {".xlsx", ".xls"}:
                         extractor = ExcelExtractor(file_path)
                     elif file_extension == ".pdf":
-                        use_unstructured = is_unstructured_enabled(".pdf")
-                        logger.info(f"PDF extraction: UNSTRUCTURED_ENABLED_PDF={use_unstructured}")
-                        extractor = (
-                            UnstructuredPdfExtractor(file_path, unstructured_api_url, unstructured_api_key)
-                            if use_unstructured
-                            else PdfExtractor(file_path)
-                        )
-                        logger.info(f"Using extractor: {extractor.__class__.__name__}")
+                        extractor = PdfExtractor(file_path)
                     elif file_extension in {".md", ".markdown", ".mdx"}:
                         extractor = (
                             UnstructuredMarkdownExtractor(file_path, unstructured_api_url, unstructured_api_key)
-                            if is_automatic and is_unstructured_enabled(".md")
+                            if is_automatic
                             else MarkdownExtractor(file_path, autodetect_encoding=True)
                         )
                     elif file_extension in {".htm", ".html"}:
                         extractor = HtmlExtractor(file_path)
                     elif file_extension == ".docx":
-                        extractor = (
-                            UnstructuredDocxExtractor(file_path, unstructured_api_url, unstructured_api_key)
-                            if is_unstructured_enabled(".docx")
-                            else WordExtractor(file_path, upload_file.tenant_id, upload_file.created_by)
-                        )
+                        extractor = WordExtractor(file_path, upload_file.tenant_id, upload_file.created_by)
                     elif file_extension == ".doc":
-                        extractor = (
-                            UnstructuredWordExtractor(file_path, unstructured_api_url, unstructured_api_key)
-                            if is_unstructured_enabled(".doc")
-                            else TextExtractor(file_path, autodetect_encoding=True)
-                        )
+                        extractor = UnstructuredWordExtractor(file_path, unstructured_api_url, unstructured_api_key)
                     elif file_extension == ".csv":
                         extractor = CSVExtractor(file_path, autodetect_encoding=True)
                     elif file_extension == ".msg":
-                        extractor = (
-                            UnstructuredMsgExtractor(file_path, unstructured_api_url, unstructured_api_key)
-                            if is_unstructured_enabled(".msg")
-                            else TextExtractor(file_path, autodetect_encoding=True)
-                        )
+                        extractor = UnstructuredMsgExtractor(file_path, unstructured_api_url, unstructured_api_key)
                     elif file_extension == ".eml":
-                        extractor = (
-                            UnstructuredEmailExtractor(file_path, unstructured_api_url, unstructured_api_key)
-                            if is_unstructured_enabled(".eml")
-                            else TextExtractor(file_path, autodetect_encoding=True)
-                        )
+                        extractor = UnstructuredEmailExtractor(file_path, unstructured_api_url, unstructured_api_key)
                     elif file_extension == ".ppt":
+                        extractor = UnstructuredPPTExtractor(file_path, unstructured_api_url, unstructured_api_key)
                         # You must first specify the API key
                         # because unstructured_api_key is necessary to parse .ppt documents
-                        extractor = (
-                            UnstructuredPPTExtractor(file_path, unstructured_api_url, unstructured_api_key)
-                            if is_unstructured_enabled(".ppt")
-                            else TextExtractor(file_path, autodetect_encoding=True)
-                        )
                     elif file_extension == ".pptx":
-                        extractor = (
-                            UnstructuredPPTXExtractor(file_path, unstructured_api_url, unstructured_api_key)
-                            if is_unstructured_enabled(".pptx")
-                            else TextExtractor(file_path, autodetect_encoding=True)
-                        )
+                        extractor = UnstructuredPPTXExtractor(file_path, unstructured_api_url, unstructured_api_key)
                     elif file_extension == ".xml":
-                        extractor = (
-                            UnstructuredXmlExtractor(file_path, unstructured_api_url, unstructured_api_key)
-                            if is_unstructured_enabled(".xml")
-                            else TextExtractor(file_path, autodetect_encoding=True)
-                        )
+                        extractor = UnstructuredXmlExtractor(file_path, unstructured_api_url, unstructured_api_key)
                     elif file_extension == ".epub":
-                        extractor = (
-                            UnstructuredEpubExtractor(file_path, unstructured_api_url, unstructured_api_key)
-                            if is_unstructured_enabled(".epub")
-                            else UnstructuredEpubExtractor(file_path)
-                        )
+                        extractor = UnstructuredEpubExtractor(file_path, unstructured_api_url, unstructured_api_key)
                     else:
                         # txt
                         extractor = TextExtractor(file_path, autodetect_encoding=True)
@@ -252,10 +207,3 @@ class ExtractProcessor:
                 raise ValueError(f"Unsupported website provider: {extract_setting.website_info.provider}")
         else:
             raise ValueError(f"Unsupported datasource type: {extract_setting.datasource_type}")
-
-
-def is_unstructured_enabled(file_ext: str) -> bool:
-    """Check if Unstructured API should be used for this file type"""
-    env_var = f"UNSTRUCTURED_ENABLED_{file_ext.upper().lstrip('.')}"
-    value = os.getenv(env_var, "true").lower()
-    return value in ("true", "1", "yes")

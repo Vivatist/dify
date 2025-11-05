@@ -358,6 +358,11 @@ x-shared-env: &shared-api-worker-env
   ETL_TYPE: ${ETL_TYPE:-dify}
   UNSTRUCTURED_API_URL: ${UNSTRUCTURED_API_URL:-}
   UNSTRUCTURED_API_KEY: ${UNSTRUCTURED_API_KEY:-}
+  UNSTRUCTURED_ENABLED_PDF: ${UNSTRUCTURED_ENABLED_PDF:-true}
+  UNSTRUCTURED_ENABLED_DOCX: ${UNSTRUCTURED_ENABLED_DOCX:-true}
+  UNSTRUCTURED_ENABLED_DOC: ${UNSTRUCTURED_ENABLED_DOC:-true}
+  UNSTRUCTURED_ENABLED_PPTX: ${UNSTRUCTURED_ENABLED_PPTX:-true}
+  UNSTRUCTURED_ENABLED_PPT: ${UNSTRUCTURED_ENABLED_PPT:-true}
   SCARF_NO_ANALYTICS: ${SCARF_NO_ANALYTICS:-true}
   PROMPT_GENERATION_MAX_TOKENS: ${PROMPT_GENERATION_MAX_TOKENS:-512}
   CODE_GENERATION_MAX_TOKENS: ${CODE_GENERATION_MAX_TOKENS:-1024}
@@ -618,7 +623,10 @@ x-shared-env: &shared-api-worker-env
 services:
   # API service
   api:
-    image: langgenius/dify-api:1.9.2
+    image: dify-api-custom:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.api
     restart: always
     environment:
       # Use the shared environment variables.
@@ -647,7 +655,10 @@ services:
   # worker service
   # The Celery worker for processing the queue.
   worker:
-    image: langgenius/dify-api:1.9.2
+    image: dify-worker-custom:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
     restart: always
     environment:
       # Use the shared environment variables.

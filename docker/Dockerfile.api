@@ -1,0 +1,16 @@
+FROM langgenius/dify-api:1.9.2
+
+# Copy custom extractors
+COPY unstructured_docx_extractor.py /app/api/core/rag/extractor/unstructured/
+COPY unstructured_pdf_extractor.py /app/api/core/rag/extractor/unstructured/
+COPY extract_processor.py /app/api/core/rag/extractor/
+
+# Set permissions
+RUN chmod 644 /app/api/core/rag/extractor/unstructured/unstructured_docx_extractor.py \
+    && chmod 644 /app/api/core/rag/extractor/unstructured/unstructured_pdf_extractor.py \
+    && chmod 644 /app/api/core/rag/extractor/extract_processor.py
+
+# Clean up Python cache
+RUN find /app/api/core/rag/extractor -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+
+WORKDIR /app/api
