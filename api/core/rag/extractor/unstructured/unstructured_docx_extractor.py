@@ -25,11 +25,16 @@ class UnstructuredDocxExtractor(BaseExtractor):
         if self._api_url:
             from unstructured.partition.api import partition_via_api
 
-            elements = partition_via_api(filename=self._file_path, api_url=self._api_url, api_key=self._api_key)
+            elements = partition_via_api(
+                filename=self._file_path,
+                api_url=self._api_url,
+                api_key=self._api_key,
+                languages=["rus", "eng"]
+            )
         else:
             from unstructured.partition.docx import partition_docx
 
-            elements = partition_docx(filename=self._file_path)
+            elements = partition_docx(filename=self._file_path, languages=["rus", "eng"])
         
         # Combine all text into a single document
         text_parts = []
