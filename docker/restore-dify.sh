@@ -117,9 +117,15 @@ fi
 
 # 5. Восстановление plugin data
 echo -e "${GREEN}[5/7]${NC} Восстановление данных плагинов..."
-if [ -d "$BACKUP_DIR/volumes/plugin_daemon" ]; then
-    rm -rf ./volumes/plugin_daemon
-    cp -r "$BACKUP_DIR/volumes/plugin_daemon" ./volumes/plugin_daemon
+if [ -f "$BACKUP_DIR/volumes/plugin_daemon.tar.gz" ]; then
+    echo "Удаление старых данных плагинов..."
+    sudo rm -rf ./volumes/plugin_daemon
+    echo "Распаковка данных плагинов (может занять время)..."
+    sudo tar -xzf "$BACKUP_DIR/volumes/plugin_daemon.tar.gz" -C ./volumes/
+    echo "✓ Plugin data восстановлен"
+elif [ -d "$BACKUP_DIR/volumes/plugin_daemon" ]; then
+    sudo rm -rf ./volumes/plugin_daemon
+    sudo cp -r "$BACKUP_DIR/volumes/plugin_daemon" ./volumes/plugin_daemon
     echo "✓ Plugin data восстановлен"
 else
     echo -e "${YELLOW}⚠ Plugin data not found in backup${NC}"
@@ -179,9 +185,6 @@ if [ -f "$BACKUP_DIR/database/"redis_dump_*.rdb ]; then
     mkdir -p ./volumes/redis/data
     cp "$REDIS_DUMP" ./volumes/redis/data/dump.rdb
     echo "✓ Redis dump восстановлен"
-else
-    echo -e "${YELLOW}⚠ Redis dump not found in backup${NC}"
-fi
 else
     echo -e "${YELLOW}⚠ Redis dump not found in backup${NC}"
 fi
