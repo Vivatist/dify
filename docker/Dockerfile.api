@@ -1,6 +1,36 @@
 FROM langgenius/dify-api:1.9.2
 
-# Copy custom extractors
+# Install OCR dependencies for DOCX and PDF processing
+# LibreOffice: converts EMF/WMF images to PNG
+# Tesseract: performs OCR on images
+# ImageMagick: image conversion fallback
+# libgl1-mesa-glx: required by opencv (unstructured-inference dependency)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libreoffice-writer \
+    libreoffice-draw \
+    tesseract-ocr \
+    tesseract-ocr-rus \
+    tesseract-ocr-eng \
+    imagemagick \
+    libgl1-mesa-glx \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python OCR dependencies
+# python-docx: extract images from DOCX files
+# unstructured-inference: local OCR processing (includes opencv, detectron2)
+# unstructured-pytesseract: Tesseract wrapper for unstructured
+# pi-heif: HEIF image format support
+# pdf2image: required for PDF processing
+RUN . /app/api/.venv/bin/activate && \
+    uv pip install --no-cache \
+    python-docx \
+    "unstructured-inference>=0.7.0" \
+    unstructured-pytesseract \
+    pi-heif \
+    pdf2image
+
+# Copy custom extractors with OCR support
 COPY unstructured_docx_extractor.py /app/api/core/rag/extractor/unstructured/
 COPY unstructured_pdf_extractor.py /app/api/core/rag/extractor/unstructured/
 COPY extract_processor.py /app/api/core/rag/extractor/
