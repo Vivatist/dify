@@ -1,4 +1,5 @@
 import logging
+import os
 
 from core.rag.extractor.extractor_base import BaseExtractor
 from core.rag.models.document import Document
@@ -22,6 +23,8 @@ class UnstructuredPdfExtractor(BaseExtractor):
         self._api_key = api_key
 
     def extract(self) -> list[Document]:
+        filename = os.path.basename(self._file_path)
+        
         if self._api_url:
             from unstructured.partition.api import partition_via_api
 
@@ -29,12 +32,17 @@ class UnstructuredPdfExtractor(BaseExtractor):
                 filename=self._file_path,
                 api_url=self._api_url,
                 api_key=self._api_key,
-                languages=["rus", "eng"]
+                languages=["rus", "eng"],
+                ocr_languages=["rus", "eng"]
             )
         else:
             from unstructured.partition.pdf import partition_pdf
 
-            elements = partition_pdf(filename=self._file_path, languages=["rus", "eng"])
+            elements = partition_pdf(
+                filename=self._file_path,
+                languages=["rus", "eng"],
+                ocr_languages=["rus", "eng"]
+            )
         
         text_by_page: dict[int, str] = {}
         for element in elements:
@@ -48,8 +56,12 @@ class UnstructuredPdfExtractor(BaseExtractor):
 
         combined_texts = list(text_by_page.values())
         documents = []
+        total_chars = 0
         for combined_text in combined_texts:
             text = combined_text.strip()
+            total_chars += len(text)
             documents.append(Document(page_content=text))
-
+        
+        logger.info(f"[PDF] {filename}: Successfully extracted {total_chars} chars from {len(documents)} pages")
+        
         return documents
